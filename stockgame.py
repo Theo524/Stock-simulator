@@ -1,3 +1,9 @@
+import json
+import yfinance as yf
+import hashlib
+import re
+
+
 class StockGame:
     def __init__(self):
         """
@@ -6,6 +12,7 @@ class StockGame:
             "user_id": ?,
             "data": {
                 "user_name": "?",
+                "password": "?"
                 "account_value": ?,
                 "cash": ?,
                 "portfolio": [
@@ -43,12 +50,29 @@ class StockGame:
             file.seek(0)
             json.dump(file_data, file, indent=4)
 
-    def create_user(self, name):
+    def create_user(self, name, password):
         """Create new user"""
 
         # if the user exists, exit function
         if self.user_exists(name):
-            return
+            print('Username already exists')
+            return False
+
+        # test password
+        if re.fullmatch(r'[A-Za-z0-9@#$%^&+=]{8,}', password):
+            # match
+            password = self.hash_pass(password)
+        else:
+            # no match
+            print("""Invalid password. It must have:
+- At least 8 characters
+- Must be restricted to, though does not specifically require any of:
+    - uppercase letters: A-Z
+    - lowercase letters: a-z
+    - numbers: 0-9
+    - any of the special characters: @#$%^&+=\n
+""")
+            return False
 
         # Writing to trading.json
         with open("trading.json", "r+") as file:
@@ -61,7 +85,8 @@ class StockGame:
             # dict of user
             user_info = {
 
-                "user_id": user_id, "data": {"user_name": name, "account_value": 0, "cash": 100000, "portfolio": []}
+                "user_id": user_id, "data": {"user_name": name, 'password': password, "account_value": 0,
+                                             "cash": 100000, "portfolio": []}
             }
 
             # add new user to json file users
@@ -70,6 +95,8 @@ class StockGame:
             # move to file_data to json file
             file.seek(0)
             json.dump(file_data, file, indent=4)
+            print(f'Created user: "{name}"')
+            return True
 
     def delete_user(self, name):
         """Delete user from json file"""
@@ -100,7 +127,7 @@ class StockGame:
         # reset/match ids
         self.reset_id_numbers()
 
-    def load_user(self, name):
+    def load_user(self, name, password='', admin_pass=False):
         """Load user from json file to game"""
 
         # if user does not exist, exit function
@@ -113,12 +140,25 @@ class StockGame:
 
             # Loop trough all the users
             for val in file_data['users']:
-                # Find the matching name
-                if val['data']['user_name'] == name:
-                    self.name = name
-                    # if the name matches, set StockGame current user to val
-                    self.current_user = val
-                    return val
+                # Find the matching name and password
+                if admin_pass:
+                    if val['data']['user_name'] == name:
+                        self.name = name
+                        # if the name matches, set StockGame current user to val
+                        self.current_user = val
+                        return True
+
+                # without admin pass search for password
+                if not admin_pass:
+                    if val['data']['user_name'] == name and val['data']['password'] == self.hash_pass(password):
+                        self.name = name
+                        # if the name matches, set StockGame current user to val
+                        self.current_user = val
+                        return True
+
+        # no match
+        print('Invalid credentials')
+        return False
 
     def buy(self, ticker, quantity):
         """Purchase a stock"""
@@ -215,7 +255,7 @@ class StockGame:
                 json.dump(file_data, file, indent=4)
 
         # after each purchase the current user data must also be updated
-        self.load_user(self.name)
+        self.load_user(self.name, admin_pass=True)
 
     def sell(self, ticker, quantity):
         """Sell a stock"""
@@ -306,7 +346,7 @@ class StockGame:
             print('The user does not have the stock')
 
         # after each sell the current user data must also be updated
-        self.load_user(self.name)
+        self.load_user(self.name, admin_pass=True)
 
     @staticmethod
     def user_exists(name):
@@ -358,3 +398,14 @@ class StockGame:
             return
 
         return self.current_user['data']['portfolio']
+
+    @staticmethod
+    def hash_pass(password):
+        """Hash the password for better security"""
+
+        # password hashing
+        message = password.encode()
+        hashed_password = hashlib.blake2b(message).hexdigest()
+
+        # Return result
+        return hashed_password

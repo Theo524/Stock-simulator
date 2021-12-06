@@ -1,3 +1,46 @@
 {
-    "users": []
+    "users": [
+        {
+            "user_id": 1,
+            "data": {
+                "user_name": "evans",
+                "password": "4f4cd16a1b90871fbff3518b5abbecc6e8811271027996f7b6151fc03c9f65659917fd2af6128ea7a51c2aee7235ed4ff8b5344c5055073b535ffb2a40269b59",
+                "account_value": 0,
+                "cash": 100000,
+                "portfolio": []
+            }
+        },
+        {
+            "user_id": 2,
+            "data": {
+                "user_name": "test",
+                "password": "372a53b95f46e775b973031e40b844f24389657019f7b7540a9f0496f4ead4a2e4b050909664611fb0f4b7c7e92c3c04c84787be7f6b8edf7bf6bc31856b6c76",
+                "account_value": 0,
+                "cash": 91095.91,
+                "portfolio": [
+                    {
+                        "AMZN": {
+                            "initial_purchase_price": 3426.27,
+                            "quantity": 2,
+                            "total_value": 6854.74
+                        }
+                    },
+                    {
+                        "EBAY": {
+                            "initial_purchase_price": 66,
+                            "quantity": 7,
+                            "total_value": 462.48999999999995
+                        }
+                    },
+                    {
+                        "FB": {
+                            "initial_purchase_price": 317.91,
+                            "quantity": 5,
+                            "total_value": 1589.35
+                        }
+                    }
+                ]
+            }
+        }
+    ]
 }

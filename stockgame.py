@@ -55,7 +55,7 @@ class StockGame:
 
         # if the user exists, exit function
         if self.user_exists(name):
-            print('Username already exists')
+            print('Username already in use.')
             return False
 
         # test password
@@ -74,6 +74,7 @@ class StockGame:
 """)
             return False
 
+        # create user
         # Writing to trading.json
         with open("trading.json", "r+") as file:
             # load file
@@ -398,6 +399,15 @@ class StockGame:
             return
 
         return self.current_user['data']['portfolio']
+
+    def get_cash(self):
+        """Return cash amount"""
+
+        # check user has been loaded
+        if self.current_user is None:
+            return
+
+        return self.current_user['data']['cash']
 
     @staticmethod
     def hash_pass(password):

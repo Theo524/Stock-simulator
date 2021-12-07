@@ -1,7 +1,12 @@
+import time
 import json
 import yfinance as yf
 import hashlib
 import re
+import datetime as dt
+from GoogleNews import GoogleNews
+from newspaper import Config
+import pandas as pd
 
 
 class StockGame:
@@ -419,3 +424,53 @@ class StockGame:
 
         # Return result
         return hashed_password
+
+
+class News:
+    def __init__(self, ticker):
+        # date
+        self.now = dt.date.today()
+        self.now = self.now.strftime('%m-%d-%Y')
+        self.yesterday = dt.date.today() - dt.timedelta(days=1)
+        self.yesterday = self.yesterday.strftime('%m-%d-%Y')
+        # config
+        user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0) Gecko/20100101 Firefox/78.0'
+        config = Config()
+        config.browser_user_agent = user_agent
+        config.request_timeout = 10
+
+        # data
+        self.news_data_dict = {}
+
+        # fill dict
+        self.get_dict(ticker)
+
+    def get_dict(self, ticker):
+        # save the company name in a variable
+        company_name = ticker
+        # As long as the company name is valid, not empty...
+        if company_name != '':
+            print(f'Searching for and analyzing {company_name}, Please be patient, it might take a while...')
+
+            # Extract News with Google News
+            googlenews = GoogleNews(start=self.yesterday, end=self.now)
+            googlenews.search(company_name)
+            result = googlenews.result()
+            # store the results
+            df = pd.DataFrame(result)
+
+            # fill empty dict
+            for index, row in df.iterrows():
+                # only 5 news extracts needed
+                if index == 5:
+                    break
+
+                self.news_data_dict[index] = {'title': row['title'],
+                                              'media_src': row['media'],
+                                              'date': row['date'],
+                                              'datetime': row['datetime'],
+                                              'description': row['desc'],
+                                              'link': row['link'][:-1]
+                                              if row['link'][-1] == '/' else row[
+                                                  'link']}  # remove '/' from end of link str
+

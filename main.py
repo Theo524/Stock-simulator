@@ -1,9 +1,12 @@
 import re
+import matplotlib.pyplot as plt
+import yfinance as yf
 import time
 import hashlib
-from stockgame import StockGame
+from stockgame import StockGame, News
 
 
+# functionalities
 def valMenu(message, options):
     choice = input(message + "\nchoice: ")
     while choice not in options:
@@ -23,6 +26,7 @@ def hash_pass(password):
     return hashed_password
 
 
+# menus
 def startMenu():
     startMenuText = """
 ************************************
@@ -46,11 +50,116 @@ def startMenu():
     elif choice == "3":
         pass
         #showStartMenuHelp()
-    elif choice == 4:
+    elif choice == "4":
         quit()
     return startMenu()
 
 
+def mainMenu():
+
+    user = stockgame.name
+
+    mainMenuText = f"""
+************************************
+*            MAIN MENU             *
+************************************
+*          Welcome {user}          *
+*       Please select an option    *
+* 1. View portfolio                *
+* 2. Buy                           *
+* 3. Sell                          *
+* 4. Search stock                  *
+* 5. Logout                        *
+************************************"""
+
+    choice = valMenu(mainMenuText, ["1", "2", "3", "4", "5"])
+    if choice == "1":
+        view_portfolio()
+
+    elif choice == "2":
+        pass
+        #buy_stock()
+    elif choice == "3":
+        pass
+        #sell_stock()
+    elif choice == "4":
+        search_stock()
+    elif choice == "5":
+        startMenu()
+    return mainMenu()
+
+
+def search_stock():
+    """Research a stock"""
+
+    print("************************")
+    print("     SEARCH STOCK       ")
+    print("************************")
+
+    stock = input('Enter the stock here: ').upper()
+
+    ticker_obj = yf.Ticker(stock).info
+    s_type = ticker_obj['quoteType']
+
+    if s_type == 'EQUITY':
+        tickerMenu(stock)
+
+    else:
+        print('You must enter equities')
+        return
+
+
+def tickerMenu(ticker):
+    ticker = ticker
+    ticker_obj = yf.Ticker(ticker).info
+
+    tickerMenuText = f"""
+************************************
+*           {ticker.upper()}         *
+************************************
+*       Please select an option    *
+* 1. Basic statistics              *
+* 2. Extended statistics           *
+* 3. Line chart                    *
+* 4. News                          *
+* 5. Exit                          *
+************************************"""
+
+    choice = valMenu(tickerMenuText, ["1", "2", "3", "4", "5"])
+    if choice == "1":
+        # basic data
+        price = ticker_obj['regularMarketPrice']
+        d_low = ticker_obj['dayLow']
+        d_high = ticker_obj['dayHigh']
+        prev_close = ticker_obj['previousClose']
+        vol = ticker_obj['volume']
+        market_cap = ticker_obj['marketCap']
+        currency = ticker_obj['currency']
+
+        print('***********************************************************')
+        print('Here is the basic data:')
+        print(f'price: {price}\nMarket capitalization: {market_cap}\nVolume: {vol}\n'
+              f'Previous close: {prev_close}\nDay high: {d_high}\nDay Low: {d_low}\nCurrency: {currency}')
+        print('***********************************************************')
+
+    elif choice == "2":
+        print('***********************************************************')
+        print('Here is the extended data:')
+        for k, v in ticker_obj.items():
+            print(f'{k}: {v}')
+        print('***********************************************************')
+
+    elif choice == "3":
+        show_line_chart(ticker)
+    elif choice == "4":
+        show_news(ticker)
+    elif choice == "5":
+        return
+
+    return tickerMenu(ticker)
+
+
+# Pages
 def login():
     """Login to account"""
 
@@ -94,48 +203,13 @@ def register():
 
         attempts += 1
 
-    # create
+    # create user
     user_created = stockgame.create_user(username, password)
 
     if user_created:
         return
     else:
         register()
-
-
-def mainMenu():
-
-    user = stockgame.name
-
-    mainMenuText = f"""
-************************************
-*            MAIN MENU             *
-************************************
-*          Welcome {user}          *
-* Please select an option          *
-* 1. View portfolio                *
-* 2. Buy                           *
-* 3. Sell                          *
-* 4. Search stock                  *
-* 5. Logout                        *
-************************************"""
-
-    choice = valMenu(mainMenuText, ["1", "2", "3", "4"])
-    if choice == "1":
-        view_portfolio()
-
-    elif choice == "2":
-        pass
-        #buy_stock()
-    elif choice == "3":
-        pass
-        #sell_stock()
-    elif choice == 4:
-        pass
-        #search_stock
-    elif choice == 5:
-        startMenu()
-    return startMenu()
 
 
 def view_portfolio():
@@ -165,6 +239,84 @@ def view_portfolio():
         c += 1
     # Give the user time to see portfolio
     time.sleep(3)
+
+
+def show_news(ticker):
+
+    print("************************")
+    print("          NEWS          ")
+    print("************************")
+    print("Now you will be shown extracts from the 5 most recent article/resources related to this stock:\n")
+
+    n = News(ticker)
+    d = n.news_data_dict
+    for key, val in d.items():
+        print(f'Article number {key + 1}')
+        print(val['title'])
+        print(f"Extract:\n{val['description']}")
+        print(f" {val['date']} • {val['media_src']}")
+        print(f"Link: {val['link']}\n")
+        time.sleep(4)
+
+
+def show_line_chart(ticker):
+
+    # ticker obj
+    t_name = ticker
+    ticker_obj = yf.Ticker(t_name)
+    full_name = ticker_obj.info['longName']
+    data = None
+
+    chartMenuText = f"""
+************************************
+*           {full_name}            *
+************************************
+*    Please select Period range    *
+* 1. Day                           *
+* 2. Week                          *
+* 3. Month                         *
+* 4. Year                          *
+* 5. max                           *
+* 6. Go back                       *
+************************************
+"""
+
+    choice = valMenu(chartMenuText, ["1", "2", "3", "4", "5", "6"])
+
+    if choice == '1':
+        # 1 day data for the stock at 5 minute intervals
+        data = ticker_obj.history(period='1d', interval='5m')
+
+    elif choice == '2':
+        # 1 week data for the stock at 15 minute interval
+        data = ticker_obj.history(period='5d', interval='1d')
+
+    elif choice == '3':
+        # 1 month data for the stock at a daily interval
+        month_num = valMenu('How many months?[1, 3, 6]: ', ["1", "3", "6"])
+        data = ticker_obj.history(period=f'{month_num}mo', interval='1d')
+
+    elif choice == '4':
+        # 1 month data for the stock at a daily interval
+        year_num = valMenu('How many years?[1, 2, 5, 10]: ', ["1", "2", "5", "10"])
+        data = ticker_obj.history(period=f'{year_num}y', interval='1m')
+
+    elif choice == '5':
+        # 5 year data for the stock at a weekly interval
+        data = ticker_obj.history(period='max', interval='1mo')
+
+    elif choice == "6":
+        return
+
+    # plot data
+    if data is not None:
+        plt.figure()
+        plt.plot(data['Close'])
+        plt.xlabel('Date')
+        plt.legend(['Price ($)'])
+        plt.show()
+
+    return show_line_chart(t_name)
 
 
 if __name__ == '__main__':

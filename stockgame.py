@@ -138,6 +138,7 @@ class StockGame:
 
         # if user does not exist, exit function
         if not self.user_exists(name):
+            print('User does not exist')
             return
 
         # open json
@@ -473,4 +474,3 @@ class News:
                                               'link': row['link'][:-1]
                                               if row['link'][-1] == '/' else row[
                                                   'link']}  # remove '/' from end of link str
-

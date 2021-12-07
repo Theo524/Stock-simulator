@@ -41,6 +41,24 @@
                     }
                 ]
             }
+        },
+        {
+            "user_id": 3,
+            "data": {
+                "user_name": "user",
+                "password": "3295d7310bd5009601ee9a12eff0a70115058d4c2c24310ccd99a049b3af78a49b320c8681b076873a47c84074151c7111af0ffd1fff7ae32056ff13b83c6636",
+                "account_value": 0,
+                "cash": 86039.67,
+                "portfolio": [
+                    {
+                        "AMZN": {
+                            "initial_purchase_price": 3490,
+                            "quantity": 4,
+                            "total_value": 13709.48
+                        }
+                    }
+                ]
+            }
         }
     ]
 }
